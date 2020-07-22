@@ -18,21 +18,23 @@ a:hover {
   margin: 0 auto;
 }
 
-span.highlight {
-  background-color: yellow;
+.medicines-list {
+  height: calc(100vh - 200px);
+  overflow-y: auto;
+  width: 100%;
 }
 
-img.medicine-image {
+.medicine-image {
   transition: 0.1s ease-in-out 0s;
   max-width: 100px;
   border-radius: 3px;
   cursor: pointer;
 }
-img.medicine-image:hover {
+.medicine-image:hover {
   transition: 0.1s ease-in-out 0s;
   transform: scale(1.2);
 }
-img.medicine-image-large {
+.medicine-image-large {
   width: 100%;
 }
 
@@ -63,4 +65,8 @@ img.medicine-image-large {
   text-align: left;
   padding: 1rem;
   font-size: 0.875em;
+}
+
+.highlight {
+  background-color: yellow;
 }

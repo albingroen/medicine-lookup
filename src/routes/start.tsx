@@ -1,52 +1,37 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import queryString from "query-string";
 import { debounce } from "lodash-es";
-import {
-  Input,
-  Stack,
-  Typography,
-  Grid,
-  Card,
-  Tag,
-  useModal,
-  Divider,
-  Button,
-  Spinner,
-} from "basikit";
-import { useHistory, Link } from "react-router-dom";
-import { medicineTypeToTitle } from "../lib";
-const { Heading, Text } = Typography;
+import { RouteComponentProps } from "react-router-dom";
+import { getMedicines } from "../lib";
+import { Spinner, Stack, Typography, useModal } from "basikit";
+import MedicinesList from "../components/medicines-list";
+import Header from "../components/header";
+const { Text } = Typography;
 
-const Start = () => {
-  const { search } = queryString.parse(window.location.search);
+const Start: React.FC<RouteComponentProps> = ({ location }) => {
+  // Search from URI
+  const { search } = queryString.parse(location.search);
 
-  const history = useHistory();
-  const [value, setValue] = useState<string>(
+  // Hooks
+  const [value, setValue] = React.useState<string>(
     search && typeof search === "string" ? search : ""
   );
-  const [results, setResults] = useState<any[]>();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-
+  const [results, setResults] = React.useState<any[]>([]);
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const { pushModal } = useModal();
 
-  useEffect(() => {
-    const searchMedicine = debounce((value: string) => {
-      fetch(
-        `https://basikit-demo-server.herokuapp.com/medicine?search=${value}`
-      )
-        .then((res) => res.json())
-        .then((res) => {
-          if (res?.medicines.length) {
-            setIsLoading(false);
-            setResults(res.medicines);
-          }
-        })
-        .catch(() => {
+  // Fetch projects when search updates
+  React.useEffect(() => {
+    const searchMedicine = debounce(async (value: string) => {
+      getMedicines(value)
+        .then(({ medicines }) => {
+          setResults(medicines?.length ? medicines : []);
           setIsLoading(false);
-        });
+        })
+        .catch(() => setIsLoading(false));
     }, 500);
 
-    if (typeof search === "string" && search?.length > 3) {
+    if (typeof search === "string") {
       setIsLoading(true);
       searchMedicine(search);
     }
@@ -54,112 +39,19 @@ const Start = () => {
 
   return (
     <Stack direction="column" className="app" size="large">
-      <Heading>Sök efter Svensk medicin</Heading>
-      <Stack size="small" block align="stretch">
-        <Input
+      <Header value={value} setValue={setValue} />
+
+      {results.length ? (
+        <MedicinesList
+          medicines={results}
+          isLoading={isLoading}
+          pushModal={pushModal}
           value={value}
-          onChange={(e) => {
-            setValue(e.currentTarget.value);
-          }}
-          block
-          placeholder="Börja söka efter en medicin eller ett symptom..."
-          onKeyDown={(e) => {
-            if (e.keyCode === 13) {
-              history.push({
-                search: queryString.stringify({
-                  search: value,
-                }),
-              });
-            }
-          }}
         />
-        <Button
-          onClick={() => {
-            history.push({
-              search: queryString.stringify({
-                search: value,
-              }),
-            });
-          }}
-          variant="primary"
-        >
-          Sök
-        </Button>
-      </Stack>
-
-      {results ? (
-        <div
-          style={{
-            height: "calc(100vh - 200px)",
-            overflowY: "auto",
-            width: "100%",
-          }}
-        >
-          <Grid gap="1rem" columns="repeat(auto-fit, minmax(400px, 1fr))">
-            {results?.map((medicine) => (
-              <Card skeleton={isLoading}>
-                <Stack direction="column" size="small">
-                  <Link
-                    to={{
-                      pathname: `/${medicine.id}`,
-                      state: { search: value },
-                    }}
-                  >
-                    <Heading
-                      level={4}
-                      dangerouslySetInnerHTML={{ __html: medicine.title_HL }}
-                    />
-                  </Link>
-                  <Stack direction="column" size="default">
-                    <Text>{medicine.substance}</Text>
-                    <Tag
-                      variant={medicine.type === "atc" ? "success" : "primary"}
-                    >
-                      {medicineTypeToTitle[medicine.type]}
-                    </Tag>
-                  </Stack>
-                  {medicine?.images?.length && (
-                    <>
-                      <Divider spacing="medium" />
-                      <Stack>
-                        {medicine?.images?.map((img: string) => {
-                          const src = `https://lakemedelsboken.se/${img}`;
-
-                          return (
-                            <img
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                pushModal({
-                                  title: medicine.title,
-                                  content: (
-                                    <img
-                                      className="medicine-image-large"
-                                      alt=""
-                                      src={src}
-                                    />
-                                  ),
-                                  id: "image-modal",
-                                });
-                              }}
-                              alt=""
-                              className="medicine-image"
-                              src={src}
-                            />
-                          );
-                        })}
-                      </Stack>
-                    </>
-                  )}
-                </Stack>
-              </Card>
-            ))}
-          </Grid>
-        </div>
       ) : isLoading ? (
         <Spinner />
       ) : (
-        <Text>Sök på exempelvis "Alvedon", "kortison", eller "pfizer"</Text>
+        <Text>{'Sök på exempelvis "Alvedon", "kortison", eller "pfizer"'}</Text>
       )}
     </Stack>
   );

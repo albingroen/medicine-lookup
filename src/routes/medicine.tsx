@@ -1,26 +1,27 @@
 import React, { useState, useEffect } from "react";
 import { Stack, Tag, Divider, Typography, Spinner } from "basikit";
 import { RouteComponentProps, Link } from "react-router-dom";
+import { getMedicine } from "../lib";
 const { Heading, Text } = Typography;
 
 const Medicine: React.FC<RouteComponentProps> = ({ match, location }) => {
+  // Keep track of current search value
   const currentSearch = (location.state as any)?.search;
+
+  // Hooks
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [medicine, setMedicine] = useState();
 
+  // Get specific medicine
   useEffect(() => {
-    const getMedicine = async (id: string) => {
-      const info = await fetch(`http://localhost:5000/medicine/${id}`)
-        .then((res) => res.json())
-        .catch((err) => {
-          setIsLoading(false);
-        });
-
-      setIsLoading(false);
-      setMedicine(info);
-    };
-
-    getMedicine((match as any).params.id);
+    getMedicine((match as any).params.id)
+      .then((res) => {
+        setIsLoading(false);
+        setMedicine(res);
+      })
+      .catch(() => {
+        setIsLoading(false);
+      });
   }, [match]);
 
   return (
@@ -28,7 +29,7 @@ const Medicine: React.FC<RouteComponentProps> = ({ match, location }) => {
       {medicine ? (
         <>
           <Link to={currentSearch ? `/?search=${currentSearch}` : "/"}>
-            Tillbaka
+            {"Tillbaka"}
           </Link>
           <Stack
             align="center"
@@ -48,7 +49,9 @@ const Medicine: React.FC<RouteComponentProps> = ({ match, location }) => {
             </Stack>
           </Stack>
           <Text>{medicine.description}</Text>
-          <Heading level={4}>Tillverkare: {medicine.brand}</Heading>
+          <Heading level={4}>
+            {"Tillverkare:"} {medicine.brand}
+          </Heading>
           {medicine?.images?.length ? (
             <Stack block style={{ overflowX: "auto" }} align="stretch">
               {medicine?.images.map(
@@ -56,6 +59,7 @@ const Medicine: React.FC<RouteComponentProps> = ({ match, location }) => {
                   <img
                     src={`https://lakemedelsboken.se//products/images/${img.checksum}.jpg`}
                     alt={img.description}
+                    key={img.checksum}
                   />
                 )
               )}
@@ -83,7 +87,7 @@ const Medicine: React.FC<RouteComponentProps> = ({ match, location }) => {
       ) : isLoading ? (
         <Spinner />
       ) : (
-        <Text variant="error">Kunde inte hitta läkemedlet</Text>
+        <Text variant="error">{"Kunde inte hitta läkemedlet"}</Text>
       )}
     </Stack>
   );
