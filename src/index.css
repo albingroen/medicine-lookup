@@ -2,6 +2,20 @@
   display: none;
 }
 
+h3,
+h4,
+h5,
+h6 {
+  line-height: 160%;
+}
+
+a {
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
 .app {
   padding: 2rem;
   max-width: 1000px;

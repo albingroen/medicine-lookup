@@ -13,7 +13,7 @@ import {
   Button,
   Spinner,
 } from "basikit";
-import { useHistory } from "react-router-dom";
+import { useHistory, Link } from "react-router-dom";
 import { medicineTypeToTitle } from "../lib";
 const { Heading, Text } = Typography;
 
@@ -97,18 +97,19 @@ const Start = () => {
         >
           <Grid gap="1rem" columns="repeat(auto-fit, minmax(400px, 1fr))">
             {results?.map((medicine) => (
-              <Card
-                skeleton={isLoading}
-                style={{ cursor: "pointer" }}
-                onClick={async () =>
-                  history.push(`/${medicine.id}`, { search: value })
-                }
-              >
+              <Card skeleton={isLoading}>
                 <Stack direction="column" size="small">
-                  <Heading
-                    level={4}
-                    dangerouslySetInnerHTML={{ __html: medicine.title_HL }}
-                  />
+                  <Link
+                    to={{
+                      pathname: `/${medicine.id}`,
+                      state: { search: value },
+                    }}
+                  >
+                    <Heading
+                      level={4}
+                      dangerouslySetInnerHTML={{ __html: medicine.title_HL }}
+                    />
+                  </Link>
                   <Stack direction="column" size="default">
                     <Text>{medicine.substance}</Text>
                     <Tag

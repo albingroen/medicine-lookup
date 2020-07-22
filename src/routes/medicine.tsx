@@ -4,6 +4,7 @@ import { RouteComponentProps, Link } from "react-router-dom";
 const { Heading, Text } = Typography;
 
 const Medicine: React.FC<RouteComponentProps> = ({ match, location }) => {
+  const currentSearch = (location.state as any)?.search;
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [medicine, setMedicine] = useState();
 
@@ -26,14 +27,18 @@ const Medicine: React.FC<RouteComponentProps> = ({ match, location }) => {
     <Stack className="app" direction="column" size="large" block>
       {medicine ? (
         <>
-          <Link to={`/?search=${(location.state as any)?.search}`}>
+          <Link to={currentSearch ? `/?search=${currentSearch}` : "/"}>
             Tillbaka
           </Link>
-          <Stack align="center">
+          <Stack
+            align="center"
+            style={{ justifyContent: "space-between" }}
+            block
+          >
             <Heading>{medicine.name}</Heading>
             <Stack size="small">
               <Tag
-                variant={Number(medicine.prescription) ? "warning" : "primary"}
+                variant={Number(medicine.prescription) ? "error" : "primary"}
               >
                 {Number(medicine.prescription) ? "Receptbelagt" : "Receptfritt"}
               </Tag>
@@ -44,20 +49,36 @@ const Medicine: React.FC<RouteComponentProps> = ({ match, location }) => {
           </Stack>
           <Text>{medicine.description}</Text>
           <Heading level={4}>Tillverkare: {medicine.brand}</Heading>
-          <Stack direction="column">
-            {Object.keys(medicine.sections).map((key) => (
-              <Stack direction="column" key={key} block>
-                <Heading level={3}>{key}</Heading>
-                <Divider />
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html: medicine.sections[key],
-                  }}
-                  className="sections"
-                />
-              </Stack>
-            ))}
-          </Stack>
+          {medicine?.images?.length ? (
+            <Stack block style={{ overflowX: 'auto' }}>
+              {medicine?.images.map(
+                (img: { description: string; checksum: string }) => (
+                  <img
+                    src={`https://lakemedelsboken.se//products/images/${img.checksum}.jpg`}
+                    alt={img.description}
+                  />
+                )
+              )}
+            </Stack>
+          ) : null}
+          {medicine?.sections && (
+            <Stack direction="column">
+              {Object.keys(medicine.sections)
+                .filter((key) => medicine.sections[key]?.length > 7)
+                .map((key) => (
+                  <Stack direction="column" key={key} block>
+                    <Heading level={3}>{key}</Heading>
+                    <Divider />
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: medicine.sections[key],
+                      }}
+                      className="sections"
+                    />
+                  </Stack>
+                ))}
+            </Stack>
+          )}
         </>
       ) : isLoading ? (
         <Spinner />
