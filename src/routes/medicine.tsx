@@ -50,7 +50,7 @@ const Medicine: React.FC<RouteComponentProps> = ({ match, location }) => {
           <Text>{medicine.description}</Text>
           <Heading level={4}>Tillverkare: {medicine.brand}</Heading>
           {medicine?.images?.length ? (
-            <Stack block style={{ overflowX: 'auto' }}>
+            <Stack block style={{ overflowX: "auto" }} align="stretch">
               {medicine?.images.map(
                 (img: { description: string; checksum: string }) => (
                   <img
